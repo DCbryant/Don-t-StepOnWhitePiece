@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>别踩白块儿</title>
+    <style>
+        body{
+            background-color: #000;
+        }
+        #canvas,.btnwrapper{
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            margin-left: -150px;
+            width: 300px;
+            height: 600px;
+            background-color: #fff;
+        }
+        .btnwrapper{
+            background-color: slategray;
+            line-height: 600px;
+            text-align: center;
+            display: none;
+        }
+        .btnwrapper .again{
+            padding: 10px 16px;
+            border-radius: 6px;
+            color: #222;
+            font-size: 20px;
+            outline: 0;
+            border: 1px solid #222;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas" width="300" height="600"></canvas>
+    <div class="btnwrapper">
+        <input class="again" type="button" value="再来一局">
+    </div>
+
+    <script>
+        // x是列，横坐标，可以分为几列,列是宽度
+        // y是行，纵坐标，可以分为几行，行是高度
+        const canvas = document.getElementById('canvas')
+        const gc = canvas.getContext('2d')
+        const btnWrapper = document.querySelector('.btnwrapper')
+        const againBtn = btnWrapper.querySelector('.again')
+        const {width,height} = canvas
+        const R = 4
+        const C = 4
+        const block_w = width / C //列是宽度
+        const block_h = height / R //行是高度
+        let diffTop = 0
+        let speed = 1
+        let timer
+        let data 
+
+        
+
+        // fillRect(l,t,block_w,block_h)
+        // r行c列的坐标(c*block_w,r*block_h)
+        //1.数据
+        //2.高度
+        initGame()
+        draw()
+        
+        function draw(){
+            gc.clearRect(0,0,width,height)
+            for(let r= 0;r<data.length;r++){//每行
+                for(let c= 0;c<data[r].length;c++){//每列
+                    if(data[r][c] === 0){
+                        gc.fillStyle = '#fff'
+                    }else{
+                        gc.fillStyle = '#000'
+                    }
+                    
+                    // 每个小块儿r行c列的坐标
+                    gc.fillRect(c*block_w,diffTop + r*block_h,block_w,block_h)     
+                    gc.strokeStyle='#888'
+                    gc.strokeRect(c*block_w,diffTop + r*block_h,block_w,block_h)
+                }
+            }
+        }
+        
+        function createLine(){
+            let temp = []
+            for(let i=0;i<C;i++){
+                temp[i] = 0
+            }
+            temp[Math.floor(Math.random()*C)]=1
+            return temp
+        }
+        // 鼠标点击的坐标
+        canvas.addEventListener('click',function(e){
+            let x = e.offsetX
+            let y = e.offsetY - diffTop //需要减掉加的高度
+            let c = Math.floor(x/block_w)
+            let r = Math.floor(y/block_h)
+
+            if(data[r][c] === 0){//点击的是白色
+                alert('游戏结束')
+                console.log(2)
+                clearInterval(timer)
+                btnWrapper.style.display = 'block'
+            }else{
+                data[r][c] = 0
+                speed += 0.3
+            }
+
+            // 重绘
+            draw()
+        },false)
+
+        // 再来一局
+        againBtn.addEventListener('click',function(){
+            initGame()
+            btnWrapper.style.display = 'none'
+        },false)
+
+
+        function initGame(){          
+            speed = 1
+            diffTop = -block_h
+            // 初始化数据
+            data =  []
+            for(let i=0;i<R+1;i++){
+                data.push(createLine())
+            }
+            // 定时器工作
+            timer = setInterval(function(){
+                diffTop+=speed
+                if(diffTop > 0){
+                    let deleteRow = data.pop()
+                    data.unshift(createLine())
+                    diffTop = -block_h
+                    console.log(diffTop)
+
+                    if(deleteRow.includes(1)){
+                        clearInterval(timer)
+                        alert('游戏结束')
+                        btnWrapper.style.display = 'block'
+                    }
+                }
+                draw()
+            },16)
+        }
+        
+
+    </script>
+</body>
+</html>
