@@ -18,12 +18,11 @@
         .btnwrapper{
             background-color: slategray;
             text-align: center;
-            display: none;
             position: absolute; 
             left: 0; 
             top: 0;
         }
-        .btnwrapper .again{
+        .btnwrapper input{
             padding: 10px 16px;
             border-radius: 6px;
             color: #222;
@@ -37,35 +36,30 @@
 <body>
     <canvas id="canvas" width="300" height="600"></canvas>
     <div class="btnwrapper">
-        <input class="again" type="button" value="再来一局">
+        <input type="button" value="开始">
     </div>
 
     <script>
         const canvas = document.getElementById('canvas')
+        const gc = canvas.getContext('2d')
         const btnWrapper = document.querySelector('.btnwrapper')
-
         window.onresize = function(){
             const width = document.documentElement.clientWidth
             const height = document.documentElement.clientHeight
-
             canvas.width = width
             canvas.style.width = width + 'px'
             canvas.height = height
             canvas.style.height = height + 'px'
             
-
             btnWrapper.style.width = width + 'px'
             btnWrapper.style.height = height + 'px'
             btnWrapper.style.lineHeight = height + 'px'
-            
         }
         window.onresize()
-
         // x是列，横坐标，可以分为几列,列是宽度
         // y是行，纵坐标，可以分为几行，行是高度
         
-        const gc = canvas.getContext('2d')
-        const againBtn = btnWrapper.querySelector('.again')
+        const btn = btnWrapper.querySelector('input')
         const {width,height} = canvas
         const R = 4
         const C = 4
@@ -75,17 +69,32 @@
         let speed = 1
         let timer
         let data 
+        let run = false
         
         // fillRect(l,t,block_w,block_h)
         // r行c列的坐标(c*block_w,r*block_h)
         //1.数据
         //2.高度
-        initGame()
-        draw()
+
+        // 开始
+        btn.addEventListener('touchstart',function(){
+            if(!run){
+                initGame()
+                draw()
+                run = true
+                btnWrapper.style.display = 'none'
+                btn.value = '再来一局'
+            }else{
+                run = false
+                clearInterval(timer)
+            }        
+        },false)
+
+
+        
         
         // 绘制小方块儿
         function draw(){
-            gc.clearRect(0,0,width,height)
             for(let r= 0;r<data.length;r++){//每行
                 for(let c= 0;c<data[r].length;c++){//每列
                     if(data[r][c] === 0){
@@ -111,7 +120,6 @@
             return temp
         }
         
-
         canvas.addEventListener('touchstart',function(e){
             let x=e.targetTouches[0].clientX;
             let y=e.targetTouches[0].clientY-diffTop
@@ -127,14 +135,9 @@
             }
             // 重绘
             draw()
+            e.preventDefault()
         },false)
-
-        // 再来一局
-        againBtn.addEventListener('touchstart',function(){
-            initGame()
-            btnWrapper.style.display = 'none'
-        },false)
-
+        
         // 初始化游戏
         function initGame(){          
             speed = 1
@@ -152,6 +155,7 @@
                     data.unshift(createLine())
                     diffTop = -block_h
                     if(deleteRow.includes(1)){
+                        run = false
                         clearInterval(timer)
                         alert('游戏结束')
                         btnWrapper.style.display = 'block'
